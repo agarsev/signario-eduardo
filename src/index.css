@@ -1,3 +1,23 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    body { @apply bg-gray-100; }
+    header { @apply bg-primary-200 p-4; }
+    header h1 { @apply inline text-2xl font-bold; }
+    section { @apply p-4 inline-grid gap-2; }
+    menu { @apply bg-white border max-h-[600px] overflow-auto; }
+    menu li { @apply cursor-pointer min-w-[200px] pl-2 pr-8; }
+    textarea { @apply border; }
+    button { @apply bg-secondary-200 border border-secondary-600 rounded py-1 px-2; }
+    button[disabled] { @apply border-gray-600 bg-gray-100 text-gray-600 italic; }
+    video { @apply max-w-[600px] cursor-pointer; }
+    h2 { @apply bg-secondary-200 px-2 m-1 rounded font-bold; }
+}
+
+@layer utilities {
+
+    li.selected { @apply bg-primary-300; }
+
+}

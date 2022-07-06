@@ -1,7 +1,12 @@
 const { app, BrowserWindow } = require('electron')
+const path = require('path');
 
 app.whenReady().then(() => {
-  const win = new BrowserWindow({});
+  const win = new BrowserWindow({
+    webPreferences: {
+      preload: path.join(__dirname, 'lista_preload.js'),
+    },
+  });
   win.loadFile('dist/lista.html')
 })
 
