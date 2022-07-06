@@ -2,13 +2,27 @@
   "name": "eduardo",
   "version": "0.1.0",
   "description": "",
-  "main": "main.js",
+  "main": "src/main.js",
   "scripts": {
     "start": "electron ."
   },
+  "targets": {
+    "electron": {
+      "source": "src/lista.html",
+      "publicUrl": "./"
+    }
+  },
   "author": "Antonio F. G. Sevilla <afgs@ucm.es>",
   "license": "OSL-3.0",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
   "devDependencies": {
-    "electron": "^19.0.7"
+    "autoprefixer": "^10.4.7",
+    "electron": "^19.0.7",
+    "parcel": "^2.6.2",
+    "postcss": "^8.4.14",
+    "tailwindcss": "^3.1.4"
   }
 }
