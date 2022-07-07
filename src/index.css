@@ -18,6 +18,6 @@
 
 @layer utilities {
 
-    li.selected { @apply bg-primary-300; }
+    menu li.selected { @apply bg-primary-300; }
 
 }

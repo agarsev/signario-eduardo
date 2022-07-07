@@ -8,7 +8,7 @@
   },
   "targets": {
     "electron": {
-      "source": "src/lista.html",
+      "source": "src/index.html",
       "publicUrl": "./"
     }
   },
