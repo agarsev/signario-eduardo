@@ -2,6 +2,17 @@ const path = require('path');
 const fsconst = require('fs').constants;
 const fs = require('fs/promises');
 
+exports.listVideos = async function(data_dir) {
+    const videos = (await fs.readdir(data_dir)).map(f => {
+      const [date, num] = f.trim().split('_');
+      return {
+        dir: path.join(data_dir, f),
+        date, num
+      };
+    });
+    return videos;
+}
+
 exports.importRecordings = async function(grab_dir, data_dir, cancel) {
   let num = 0;
   for (fecha of await fs.readdir(grab_dir)) {
@@ -22,4 +33,14 @@ exports.importRecordings = async function(grab_dir, data_dir, cancel) {
     }
   }
   return num;
+}
+
+exports.videoInfo = async function(video_dir) {
+  try {
+    const text = await fs.readFile(path.join(video_dir, 'info.json'), 'utf8');
+    return JSON.parse(text);
+  } catch (err) {
+    if (err.code != 'ENOENT') throw err;
+    return {};
+  }
 }

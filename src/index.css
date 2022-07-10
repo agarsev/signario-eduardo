@@ -8,7 +8,7 @@
     header h1 { @apply inline text-2xl font-bold; }
     body > p { @apply p-4; }
     section { @apply p-4 inline-grid gap-2; }
-    menu { @apply bg-white border max-h-[600px] overflow-auto; }
+    menu { @apply bg-white border min-w-[200px] max-h-[600px] overflow-auto; }
     menu li { @apply cursor-pointer min-w-[200px] pl-2 pr-8; }
     textarea { @apply border; }
     button { @apply bg-secondary-200 border border-secondary-600 rounded py-1 px-2; }

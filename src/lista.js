@@ -1,17 +1,21 @@
 import { useState, useEffect } from "react";
 
-export function ListaVideos ({ data_dir }) {
+export function ListaVideos ({ data_dir, select }) {
     const [ sel, setSel ] = useState(null);
     const [ videos, setVideos ] = useState([]);
+    const thisVideo = videos.find(v => v.num == sel) || null;
     useEffect(() => {
-        setVideos(api.list_videos(data_dir));
-    }, data_dir);
-    return <>
-        <section class="grid-cols-[auto_auto_1fr]">
-            <MenuVideos videos={videos} sel={sel} setSel={setSel} />
-            <InfoVideo video={sel?videos.find(v => v.num==sel):null} />
-        </section>
-    </>;
+        api.list_videos(data_dir).then(setVideos);
+    }, [data_dir]);
+
+    return <section class="grid-cols-[auto_auto_1fr]">
+        <MenuVideos videos={videos} sel={sel} setSel={setSel} />
+        <InfoVideo video={thisVideo} />
+        <span class="col-start-3">
+            <button disabled={sel==null}
+                onClick={() => select(thisVideo)}>Revisar</button>
+        </span>
+    </section>;
 }
 
 function MenuVideos ({ videos, sel, setSel }) {
@@ -31,27 +35,19 @@ function MenuVideos ({ videos, sel, setSel }) {
 }
  
 function InfoVideo ({ video }) {
-    const signer = "";
+    const [ info, setInfo ] = useState({});
+    useEffect(() => {
+        if (video) api.get_video_info(video.dir).then(setInfo);
+    }, [video]);
     return <>
         <span>Revisado:</span>
-        <span><input type="checkbox" autocomplete="off"
-            disabled={!video} /></span>
+        <span><input type="checkbox" autocomplete="off" 
+            checked={info.reviewed || false}/></span>
 
         <span>Intérprete:</span>
-        <span><select value={signer} autocomplete="off" disabled={!video}>
-            <option></option>
-            <option value="Gloria">Gloria</option>
-            <option value="Mamen">Mamen</option>
-        </select></span>
+        <span>{info.signer || '?'}</span>
 
         <span>Notas:</span>
-        <span>
-        <textarea autocomplete="off" disabled={!video}>
-        </textarea>
-        </span>
-
-        <span class="col-start-3">
-        <button disabled={!video}>Revisar</button>
-        </span>
+        <span>{info.notes || '-'}</span>
     </>;
 }

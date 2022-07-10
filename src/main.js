@@ -24,6 +24,8 @@ function MainWindow (dir) {
     }, {
       role: 'forceReload',
     }, {
+      type: 'separator'
+    }, {
       role: 'toggleDevTools',
     }]
   }]));
