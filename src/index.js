@@ -7,7 +7,6 @@ function useLocalStorage (key, def) {
     const stored = localStorage.getItem(key);
     const [ val, set ] = useState(stored!==undefined?stored:def);
     return [ val, new_val => {
-        console.log(new_val);
         localStorage.setItem(key, new_val);
         set(new_val);
     }];
