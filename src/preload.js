@@ -1,14 +1,16 @@
-const { contextBridge } = require('electron');
+const { contextBridge, ipcRenderer } = require('electron');
 const { readdirSync } = require('fs');
 
-const data_dir = process.argv.pop();
-
 contextBridge.exposeInMainWorld('api', {
-  list_videos: () => {
+
+  on_data_dir: callback => ipcRenderer.on('data_directory', (e, v) => callback(v)),
+
+  list_videos: data_dir => {
     const videos = readdirSync(data_dir).map(f => {
       const [date, num] = f.trim().split('_');
       return {date, num};
     });
     return videos;
   },
+
 });
