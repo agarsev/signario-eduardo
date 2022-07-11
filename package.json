@@ -33,6 +33,7 @@
       "dist/*.js",
       "dist/*.css",
       "src/main.js",
+      "src/api.js",
       "src/preload.js"
     ],
     "win": { "target": "portable" },

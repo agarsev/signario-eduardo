@@ -1,8 +1,9 @@
 all:
 	echo "build o frontend"
 
-build: frontend
+build:
 	@mkdir -p dist
+	NODE_ENV=production parcel build --no-autoinstall 
 	electron-builder -l -w
 
 frontend:
