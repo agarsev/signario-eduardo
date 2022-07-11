@@ -7,7 +7,9 @@ build: frontend
 
 frontend:
 	@mkdir -p dist
-	parcel build --no-autoinstall --no-content-hash --no-cache
+	NODE_ENV=development parcel build \
+			 --no-autoinstall --no-content-hash --no-cache \
+			 --no-optimize
 
 clean:
 	rm -rf dist

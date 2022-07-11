@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 
 export function ListaVideos ({ data_dir, select }) {
     const [ sel, setSel ] = useState(null);
@@ -8,10 +8,10 @@ export function ListaVideos ({ data_dir, select }) {
         api.list_videos(data_dir).then(setVideos);
     }, [data_dir]);
 
-    return <section class="grid-cols-[auto_auto_1fr]">
+    return <section className="grid-cols-[auto_auto_1fr]">
         <MenuVideos videos={videos} sel={sel} setSel={setSel} />
         <InfoVideo video={thisVideo} />
-        <span class="col-start-3">
+        <span className="col-start-3">
             <button disabled={sel==null}
                 onClick={() => select(thisVideo)}>Revisar</button>
         </span>
@@ -24,13 +24,13 @@ function MenuVideos ({ videos, sel, setSel }) {
         acc[v.date].push(v);
         return acc;
     }, {});
-    return <menu class="row-span-5">{Object.keys(fechas).map(f => <>
-        <li class="text-gray-600 italic cursor-auto">{f}</li>
+    return <menu className="row-span-5">{Object.keys(fechas).map(f => <Fragment key={f}>
+        <li className="text-gray-600 italic cursor-auto">{f}</li>
         {fechas[f].map(v => {
-            return <li class={"pl-6"+(v.num==sel?" selected":"")}
+            return <li key={v.num} className={"pl-6"+(v.num==sel?" selected":"")}
                 onClick={() => setSel(v.num)}>{v.num}</li>;
         })}
-    </>)}
+    </Fragment>)}
     </menu>;
 }
  
@@ -41,7 +41,7 @@ function InfoVideo ({ video }) {
     }, [video]);
     return <>
         <span>Revisado:</span>
-        <span><input type="checkbox" autocomplete="off" 
+        <span><input type="checkbox" autoComplete="off" readOnly={true}
             checked={info.reviewed || false}/></span>
 
         <span>Intérprete:</span>

@@ -1,33 +1,66 @@
+import { useState, useEffect } from "react";
+
 export function RevisarVideo ({ video }) {
     return <>
-        <VideoInfo video={video} />
+        <VideoInfo video_dir={video.dir} />
         <h2>Signos</h2>
-        <section class="grid-cols-[auto_auto_auto_auto_1fr]">
+        <section className="grid-cols-[auto_auto_auto_auto_1fr]">
             <ClipList clips={[]} />
-            <span class="col-span-4">
-                <video muted src={`${video.dir}/raw.mp4`} />
-            </span>
+            <VideoPlay video={video} />
             <ClipInfo clip={{}} />
         </section>
     </>;
 }
 
-function VideoInfo ({ video }) {
-    return <section class="grid-cols-[auto_auto_auto_auto_1fr]">
+function VideoPlay ({ video, clip }) {
+    const replay = e => {
+        e.target.play();
+    };
+    return <span className="col-span-4">
+        <video muted onClick={replay}>
+            <source src={`${video.dir}/lowq.mp4`} />
+            <source src={`${video.dir}/raw.mp4`} />
+        </video>
+    </span>;
+}
+
+function VideoInfo ({ video_dir }) {
+    const [reviewed, setRev] = useState(false);
+    const [signer, setSigner] = useState("");
+    const [notes, setNotes] = useState("");
+    const [loaded, setLoaded] = useState(false);
+    useEffect(() => {
+        if (loaded) {
+            api.save_video_info(video_dir, {reviewed,signer,notes});
+        }
+    }, [reviewed, signer, notes]);
+    useEffect(() => {
+        api.get_video_info(video_dir)
+        .then(({reviewed, signer, notes}) => {
+            setRev(reviewed);
+            setSigner(signer);
+            setNotes(notes);
+            setLoaded(true);
+        });
+    }, [video_dir]);
+    return <section className="grid-cols-[auto_auto_auto_auto_1fr]">
         <span>Revisado:</span>
         <span>
-            <input id="reviewed" type="checkbox" autocomplete="off" />
+            <input disabled={!loaded} type="checkbox" autoComplete="off" checked={reviewed}
+                onChange={e => setRev(!reviewed)} />
         </span>
 
         <span>Notas:</span>
-        <span class="row-span-2">
-            <textarea id="vidnotes" autocomplete="off"></textarea>
+        <span className="row-span-2">
+            <textarea disabled={!loaded} autoComplete="off" value={notes}
+                onChange={e => setNotes(e.target.value)} />
         </span>
 
-        <span class="row-span-2 self-end"><button>Guardar</button></span>
+        <span className="row-span-2 self-end"><button>Importar Cortes</button></span>
 
         <span>Intérprete:</span>
-        <span><select value="" autocomplete="off">
+        <span><select value={signer} onChange={e => setSigner(e.target.value)}
+                disabled={!loaded} autoComplete="off">
             <option></option>
             <option value="Gloria">Gloria</option>
             <option value="Mamen">Mamen</option>
@@ -36,7 +69,7 @@ function VideoInfo ({ video }) {
 }
 
 function ClipList ({ clips }) {
-    return <menu class="row-span-4">
+    return <menu className="row-span-4">
         {clips.map(c => <li>{clip.gloss}</li>)}
     </menu>;
 }
@@ -44,20 +77,20 @@ function ClipList ({ clips }) {
 function ClipInfo ({ clip }) {
     return <>
         <span>Desde:</span>
-        <span><input id="start" disabled autocomplete="off" min="0" type="number" step="0.1" /></span>
+        <span><input id="start" disabled autoComplete="off" min="0" type="number" step="0.1" /></span>
 
         <span>Hasta:</span>
-        <span><input id="end" disabled autocomplete="off" min="0" type="number" step="0.1" /></span>
+        <span><input id="end" disabled autoComplete="off" min="0" type="number" step="0.1" /></span>
 
         <span>Glosa:</span>
-        <span><input id="gloss" disabled autocomplete="off" type="text" /></span>
+        <span><input id="gloss" disabled autoComplete="off" type="text" /></span>
 
         <span>Signotación:</span>
-        <span><input id="notation" disabled autocomplete="off" type="text" /></span>
+        <span><input id="notation" disabled autoComplete="off" type="text" /></span>
 
         <span>Notas:</span>
-        <span class="col-span-3">
-            <textarea disabled autocomplete="off" id="notes" class="w-full">
+        <span className="col-span-3">
+            <textarea disabled autoComplete="off" id="notes" className="w-full">
             </textarea>
         </span>
     </>;

@@ -1,4 +1,4 @@
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import { useState } from "react";
 
 import { ListaVideos } from './lista.js';
@@ -23,22 +23,22 @@ function App () {
             Cambia el directorio <b>destino</b> en el menú Archivo.
         </p>;
     } else if (selected !== null) {
-        main = <RevisarVideo video={selected} />
+        main = <RevisarVideo video={selected} />;
     } else {
-        main = <ListaVideos data_dir={dataDir} select={setSelected} />
+        main = <ListaVideos data_dir={dataDir} select={setSelected} />;
     }
     return <>
-        <header><h1><span class="cursor-pointer"
-                onClick={() =>setSelected(null)}>
+        <header><h1><span className="cursor-pointer"
+                onClick={() => setSelected(null)}>
             Vídeos Signario</span>
             {selected&&` » ${selected.num}`}
             </h1>
-            <span class="ml-4">
-                {selected?selected.dir:dataDir}
+            <span className="ml-4">
+                {selected!==null?selected.dir:dataDir}
             </span>
         </header>
         {main}
     </>;
 }
 
-ReactDOM.render(<App />, document.body);
+createRoot(document.body).render(<App />);

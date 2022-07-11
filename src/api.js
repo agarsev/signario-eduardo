@@ -35,7 +35,7 @@ exports.importRecordings = async function(grab_dir, data_dir, cancel) {
   return num;
 }
 
-exports.videoInfo = async function(video_dir) {
+exports.getVideoInfo = async function(video_dir) {
   try {
     const text = await fs.readFile(path.join(video_dir, 'info.json'), 'utf8');
     return JSON.parse(text);
@@ -43,4 +43,9 @@ exports.videoInfo = async function(video_dir) {
     if (err.code != 'ENOENT') throw err;
     return {};
   }
+}
+
+exports.saveVideoInfo = async function(video_dir, info) {
+  return fs.writeFile(path.join(video_dir, 'info.json'),
+    JSON.stringify(info));
 }
