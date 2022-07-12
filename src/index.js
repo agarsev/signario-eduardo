@@ -1,4 +1,5 @@
 import { createRoot } from "react-dom/client";
+import { useEffect } from 'react';
 
 import { ListaVideos } from './lista.js';
 import { RevisarVideo } from './revisar.js';
@@ -6,8 +7,12 @@ import { useLocalStorage } from './common.js';
 
 function App () {
     const [ dataDir, setDataDir ] = useLocalStorage('data_directory', null);
-    api.on_data_dir(setDataDir);
+    useEffect(() => {
+        api.on_data_dir(setDataDir);
+    }, []);
     const [ reviewing, setReviewing ] = useLocalStorage('reviewing_video', null);
+    useEffect(() => {api.set_undo_enabled(reviewing != null);}, [reviewing]);
+
     let main;
     if (dataDir === null) {
         main = <p>

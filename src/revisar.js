@@ -3,30 +3,59 @@ import { useState, useEffect, useRef } from "react";
 let save_timeout;
 const DEBOUNCE_TIMEOUT = 600;
 
+let undo_stack = [];
+const MAX_UNDO = 100;
+
 export function RevisarVideo ({ video }) {
     const [savingState, setSS] = useState('');
-
     const [info, setInfo] = useState(null);
-    const updInfo = update => {
-        const newVal = {...info, ...update};
-        setInfo(newVal);
+    const [currentCut, setCC] = useState(null);
+    const theCurrentCut = currentCut!==null?info.cuts[currentCut]:null;
+
+    const save = (newVal, is_from_undo) => {
         setSS('');
-        if (save_timeout) clearTimeout(save_timeout);
+        if (save_timeout) {
+            clearTimeout(save_timeout);
+        } else if (!is_from_undo) {
+            undo_stack.push({info, currentCut});
+            if (undo_stack.length > MAX_UNDO) undo_stack.shift();
+        }
         save_timeout = setTimeout(async () => {
             save_timeout = null;
             setSS('guardando...');
             await api.save_video_info(video.dir, newVal);
             setSS('todo guardado 👍');
         }, DEBOUNCE_TIMEOUT);
+    }
+
+    const updInfo = update => {
+        const newVal = {...info, ...update};
+        setInfo(newVal);
+        save(newVal, false);
     };
 
     useEffect(() => {
+        undo_stack = [];
         api.get_video_info(video.dir)
         .then(setInfo);
     }, [video.dir]);
 
-    const [currentCut, setCC] = useState(null);
-    const theCurrentCut = currentCut!==null?info.cuts[currentCut]:null;
+    useEffect(() => {
+        const undo = () => {
+            if (undo_stack.length > 0) {
+                const old = undo_stack.pop();
+                setInfo(old.info);
+                setCC(old.currentCut);
+                save(old.info, true);
+            }
+        };
+        api.on_undo(undo);
+        const onkeydown = e => {
+            if (e.ctrlKey && e.key == 'z') undo();
+        };
+        document.addEventListener('keydown', onkeydown);
+        return () => document.removeEventListener('keydown', onkeydown);
+    }, []);
 
     return <>
         <section className="grid grid-cols-[auto_auto_auto_auto_1fr_auto] grid-flow-dense">
@@ -43,7 +72,7 @@ export function RevisarVideo ({ video }) {
             <CutList cuts={info!==null&&info.cuts?info.cuts:[]} currentCut={currentCut} setCC={setCC} />
             <VideoPlay video={video} start={currentCut!==null?theCurrentCut.start:-1}
                 end={currentCut!==null?theCurrentCut.end:-1} />
-            <CutInfo cut={theCurrentCut} updCut={val => {
+            <CutInfo current={currentCut} cut={theCurrentCut} updCut={val => {
                     const newCuts = info.cuts.slice();
                     newCuts[currentCut] = {...newCuts[currentCut], ...val};
                     updInfo({cuts: newCuts});
@@ -129,11 +158,18 @@ function CutList ({ cuts, currentCut, setCC }) {
     </menu>;
 }
 
-function CutInfo ({ cut, updCut }) {
+function CutInfo ({ cut, updCut, current }) {
     const common = {
         disabled: cut===null,
         autoComplete: "off"
     };
+    const glosRef = useRef();
+    useEffect(() => {
+        if (glosRef.current) {
+            glosRef.current.focus();
+            glosRef.current.select();
+        }
+    }, [current]);
     const { start, end, gloss, notation, notes } = cut?cut:{};
     return <>
         <span>Desde:</span>
@@ -145,7 +181,7 @@ function CutInfo ({ cut, updCut }) {
             onChange={e => updCut({end: e.target.value})} /></span>
 
         <span>Glosa:</span>
-        <span><input {...common} type="text" value={gloss || ''}
+        <span><input {...common} type="text" value={gloss || ''} ref={glosRef}
             onChange={e => updCut({gloss: e.target.value})} /></span>
 
         <span>Signotación:</span>
@@ -186,9 +222,9 @@ function CutOperations({ cuts, currentCut, update }) {
     const shiftGloss = () => {
         const nucuts = cuts.slice();
         for (let i = nucuts.length-1; i>currentCut; i--) {
-            nucuts[i].gloss = nucuts[i-1].gloss
+            nucuts[i] = { ...nucuts[i], gloss: nucuts[i-1].gloss };
         }
-        nucuts[currentCut].gloss = '-';
+        nucuts[currentCut] = { ...nucuts[currentCut], gloss: '-' };
         update(nucuts, currentCut);
     };
     const merge = () => {

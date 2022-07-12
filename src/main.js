@@ -1,7 +1,24 @@
-const { app, BrowserWindow, Menu, dialog, ipcMain } = require('electron')
+const { app, BrowserWindow, Menu, MenuItem, dialog, ipcMain } = require('electron')
 const path = require('path');
 
 const { importRecordings, importAutocuts } = require('./api.js');
+
+const undoMenu = new MenuItem({
+  label: 'Deshacer',
+  accelerator: "CmdOrCtrl+Z",
+  click: sendUndo
+});
+
+ipcMain.handle('set_undo_enabled', async (_, enabled) => {
+  undoMenu.enabled = enabled;
+});
+
+async function sendUndo (e, win) {
+  // work around electron bug, listen to Ctrl+z in renderer too
+  if (!e.triggeredByAccelerator) {
+    win.webContents.send('do_undo');
+  }
+}
 
 function MainWindow (dir) {
   Menu.setApplicationMenu(Menu.buildFromTemplate([{
@@ -16,6 +33,19 @@ function MainWindow (dir) {
       type: 'separator'
     }, {
       role: 'quit'
+    }]
+  },{
+    role: 'editMenu',
+    submenu: [
+      undoMenu,
+    {
+      type: 'separator'
+    }, {
+      role: 'cut',
+    }, {
+      role: 'copy',
+    }, {
+      role: 'paste',
     }]
   },{
     role: 'window',
