@@ -1,7 +1,7 @@
-const { app, BrowserWindow, Menu, dialog } = require('electron')
+const { app, BrowserWindow, Menu, dialog, ipcMain } = require('electron')
 const path = require('path');
 
-const { importRecordings } = require('./api.js');
+const { importRecordings, importAutocuts } = require('./api.js');
 
 function MainWindow (dir) {
   Menu.setApplicationMenu(Menu.buildFromTemplate([{
@@ -49,7 +49,7 @@ async function changeDataDir (_, win) {
 
 async function importRecordingsDialog (_, win) {
   const res = await dialog.showOpenDialog(win, {
-    tittle: "Seleccionar directorio de grabaciones",
+    title: "Seleccionar directorio de grabaciones",
     properties: ['openDirectory'],
   });
   if (!res.canceled) {
@@ -83,6 +83,10 @@ async function importRecordingsDialog (_, win) {
     win.reload();
   }
 }
+
+ipcMain.handle('import_autocuts', async (_, video_dir) =>
+  await importAutocuts(video_dir));
+
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()

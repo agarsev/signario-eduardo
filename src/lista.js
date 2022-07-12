@@ -1,7 +1,8 @@
 import { useState, useEffect, Fragment } from "react";
+import { useLocalStorage } from './common.js';
 
-export function ListaVideos ({ data_dir, select }) {
-    const [ sel, setSel ] = useState(null);
+export function ListaVideos ({ data_dir, review }) {
+    const [ sel, setSel ] = useLocalStorage('list_selected_video', null);
     const [ videos, setVideos ] = useState([]);
     const thisVideo = videos.find(v => v.num == sel) || null;
     useEffect(() => {
@@ -13,7 +14,7 @@ export function ListaVideos ({ data_dir, select }) {
         <InfoVideo video={thisVideo} />
         <span className="col-start-3">
             <button disabled={sel==null}
-                onClick={() => select(thisVideo)}>Revisar</button>
+                onClick={() => review(thisVideo)}>Revisar</button>
         </span>
     </section>;
 }

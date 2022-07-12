@@ -1,17 +1,42 @@
 import { useState, useEffect } from "react";
 
+let save_timeout;
+const DEBOUNCE_TIMEOUT = 500;
+
 export function RevisarVideo ({ video }) {
+    const [info, setInfo] = useState(null);
+    const [savingState, setSS] = useState('');
+    const updInfo = update => {
+        const newVal = {...info, ...update};
+        setInfo(newVal);
+        setSS('');
+        if (save_timeout) clearTimeout(save_timeout);
+        save_timeout = setTimeout(async () => {
+            save_timeout = null;
+            setSS('guardando...');
+            await api.save_video_info(video.dir, newVal);
+            setSS('guardado 👍');
+        }, DEBOUNCE_TIMEOUT);
+    };
+    useEffect(() => {
+        api.get_video_info(video.dir)
+        .then(setInfo);
+    }, [video.dir]);
     return <>
-        <section className="grid grid-cols-[auto_auto_auto_1fr_auto] grid-flow-dense">
-            <VideoInfo video_dir={video.dir} />
-            <button>(1) Importar Cortes</button>
+        <section className="grid grid-cols-[auto_auto_auto_auto_1fr_auto] grid-flow-dense">
+            <VideoInfo meta={info} updateMeta={updInfo}
+            />
+            <span className="row-span-2 text-gray-600">{savingState}</span>
+            <button onClick={() => api.import_autocuts(video.dir)
+                    .then(cuts => updInfo({cuts}))}
+                >(1) Importar Cortes</button>
             <button>(2) Importar Glosas</button>
         </section>
         <h2>Signos</h2>
         <section className="grid-cols-[auto_auto_auto_auto_1fr]">
-            <ClipList clips={[]} />
+            <CutList cuts={info!==null&&info.cuts?info.cuts:[]} />
             <VideoPlay video={video} />
-            <ClipInfo clip={{}} />
+            <CutInfo cut={{}} />
         </section>
     </>;
 }
@@ -28,41 +53,28 @@ function VideoPlay ({ video, clip }) {
     </span>;
 }
 
-function VideoInfo ({ video_dir }) {
-    const [reviewed, setRev] = useState(false);
-    const [signer, setSigner] = useState("");
-    const [notes, setNotes] = useState("");
-    const [loaded, setLoaded] = useState(false);
-    useEffect(() => {
-        if (loaded) {
-            api.save_video_info(video_dir, {reviewed,signer,notes});
-        }
-    }, [reviewed, signer, notes]);
-    useEffect(() => {
-        api.get_video_info(video_dir)
-        .then(({reviewed, signer, notes}) => {
-            setRev(reviewed);
-            setSigner(signer);
-            setNotes(notes);
-            setLoaded(true);
-        });
-    }, [video_dir]);
+function VideoInfo ({ meta, updateMeta }) {
+    const loaded = meta !== null;
+    const reviewed = loaded && meta.reviewed || false;
+    const notes = loaded && meta.notes ? meta.notes : '';
+    const signer = loaded && meta.signer ? meta.signer : '';
     return <>
         <span>Revisado:</span>
         <span>
             <input disabled={!loaded} type="checkbox" autoComplete="off" checked={reviewed}
-                onChange={e => setRev(!reviewed)} />
+                onChange={e => updateMeta({reviewed: !meta.reviewed})} />
         </span>
 
         <span className="row-span-2">Notas:</span>
         <span className="row-span-2">
             <textarea disabled={!loaded} autoComplete="off" value={notes}
-                onChange={e => setNotes(e.target.value)} />
+                className="h-full min-w-10em"
+                onChange={e => updateMeta({notes: e.target.value})} />
         </span>
 
         <span className="col-start-1">Intérprete:</span>
         <span className="col-start-2">
-            <select value={signer} onChange={e => setSigner(e.target.value)}
+            <select value={signer} onChange={e => updateMeta({signer: e.target.value})}
                 disabled={!loaded} autoComplete="off">
             <option></option>
             <option value="Gloria">Gloria</option>
@@ -72,13 +84,17 @@ function VideoInfo ({ video_dir }) {
     </>;
 }
 
-function ClipList ({ clips }) {
+function CutList ({ cuts }) {
+    const [sel, setSel] = useState(null);
     return <menu className="row-span-4">
-        {clips.map(c => <li>{clip.gloss}</li>)}
+        {cuts.map((c, i) => <li key={i}
+            className={sel==i?"selected":""}
+            onClick={() => setSel(i)}
+            >{c.gloss}</li>)}
     </menu>;
 }
 
-function ClipInfo ({ clip }) {
+function CutInfo ({ cut }) {
     return <>
         <span>Desde:</span>
         <span><input id="start" disabled autoComplete="off" min="0" type="number" step="0.1" /></span>

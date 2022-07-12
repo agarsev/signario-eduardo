@@ -10,5 +10,6 @@ contextBridge.exposeInMainWorld('api', {
   list_videos: api.listVideos,
   get_video_info: api.getVideoInfo,
   save_video_info: api.saveVideoInfo,
+  import_autocuts: video_dir => ipcRenderer.invoke('import_autocuts', video_dir),
 
 });
