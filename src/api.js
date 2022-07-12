@@ -74,3 +74,13 @@ exports.importAutocuts = async function(video_dir) {
       return {gloss: num, start, end};
     });
 }
+
+exports.importGlosses = async function(video_dir) {
+  const res = await dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), {
+    title: "Importar fichero de glosas",
+    properties: ['openFile'],
+  });
+  if (res.canceled) return;
+  const text = await fs.readFile(res.filePaths[0], 'utf8');
+  return text.split(/\r?\n/).filter(l => l!=='');
+}

@@ -17,7 +17,9 @@ contextBridge.exposeInMainWorld('api', {
   list_videos: api.listVideos,
   get_video_info: api.getVideoInfo,
   save_video_info: api.saveVideoInfo,
+
   import_autocuts: video_dir => ipcRenderer.invoke('import_autocuts', video_dir),
+  import_glosses: video_dir => ipcRenderer.invoke('import_glosses', video_dir),
   set_undo_enabled: enabled => ipcRenderer.invoke('set_undo_enabled', enabled),
 
 });

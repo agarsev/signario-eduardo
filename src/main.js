@@ -1,7 +1,7 @@
 const { app, BrowserWindow, Menu, MenuItem, dialog, ipcMain } = require('electron')
 const path = require('path');
 
-const { importRecordings, importAutocuts } = require('./api.js');
+const { importRecordings, importAutocuts, importGlosses } = require('./api.js');
 
 const undoMenu = new MenuItem({
   label: 'Deshacer',
@@ -118,6 +118,8 @@ async function importRecordingsDialog (_, win) {
 ipcMain.handle('import_autocuts', async (_, video_dir) =>
   await importAutocuts(video_dir));
 
+ipcMain.handle('import_glosses', async (_, video_dir) =>
+  await importGlosses(video_dir));
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()

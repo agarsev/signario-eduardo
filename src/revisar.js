@@ -51,11 +51,29 @@ export function RevisarVideo ({ video }) {
         };
         api.on_undo(undo);
         const onkeydown = e => {
-            if (e.ctrlKey && e.key == 'z') undo();
+            if (e.ctrlKey && e.key == 'z') {
+                undo();
+                e.preventDefault();
+            }
         };
         document.addEventListener('keydown', onkeydown);
         return () => document.removeEventListener('keydown', onkeydown);
     }, []);
+
+    const importGlosses = async () => {
+        const glosses = await api.import_glosses(video.dir);
+        const nucuts = (info && info.cuts)?info.cuts.slice():[];
+        let last_end = 0;
+        for (let i = 0; i<glosses.length; i++) {
+            nucuts[i] = {
+                start: last_end, end: last_end+2,
+                ...nucuts[i],
+                gloss: glosses[i]
+            };
+            last_end = nucuts[i].end;
+        }
+        updInfo({cuts:nucuts});
+    };
 
     return <>
         <section className="grid grid-cols-[auto_auto_auto_auto_1fr_auto] grid-flow-dense">
@@ -65,7 +83,7 @@ export function RevisarVideo ({ video }) {
             <button onClick={() => api.import_autocuts(video.dir)
                     .then(cuts => updInfo({cuts}))}
                 >(1) Importar Cortes</button>
-            <button>(2) Importar Glosas</button>
+            <button onClick={importGlosses}>(2) Importar Glosas</button>
         </section>
         <h2>Signos</h2>
         <section className="grid-cols-[auto_auto_auto_auto_1fr]">
@@ -148,13 +166,21 @@ function CutList ({ cuts, currentCut, setCC }) {
     useEffect(() => {
         if (curLi.current) curLi.current.scrollIntoView({
             behavior: "smooth", block: "nearest" });
-    }, [currentCut]);
+        const onkeydown = e => {
+            if (e.key == 'Enter') {
+                const next = currentCut===null?0:(currentCut+1);
+                if (next < cuts.length-1) setCC(next);
+            }
+        };
+        document.addEventListener('keydown', onkeydown);
+        return () => document.removeEventListener('keydown', onkeydown);
+    }, [currentCut, cuts.length]);
     return <menu className="row-span-4">
         {cuts.map((c, i) => <li key={i}
             ref={currentCut==i?curLi:null}
             className={currentCut==i?"selected":""}
             onClick={() => setCC(i)}
-            >{c.gloss}</li>)}
+            >{c.gloss || '-'}</li>)}
     </menu>;
 }
 
