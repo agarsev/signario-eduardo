@@ -5,10 +5,13 @@ import { ListaVideos } from './lista.js';
 import { RevisarVideo } from './revisar.js';
 
 function useLocalStorage (key, def) {
-    const stored = localStorage.getItem(key);
+    let stored;
+    try {
+        stored = JSON.parse(localStorage.getItem(key));
+    } catch {} 
     const [ val, set ] = useState(stored!==undefined?stored:def);
     return [ val, new_val => {
-        localStorage.setItem(key, new_val);
+        localStorage.setItem(key, JSON.stringify(new_val));
         set(new_val);
     }];
 }
@@ -16,7 +19,7 @@ function useLocalStorage (key, def) {
 function App () {
     const [ dataDir, setDataDir ] = useLocalStorage('data_directory', null);
     api.on_data_dir(setDataDir);
-    const [ selected, setSelected ] = useState(null);
+    const [ selected, setSelected ] = useLocalStorage('selected_video', null);
     let main;
     if (dataDir === null) {
         main = <p>

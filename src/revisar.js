@@ -2,7 +2,11 @@ import { useState, useEffect } from "react";
 
 export function RevisarVideo ({ video }) {
     return <>
-        <VideoInfo video_dir={video.dir} />
+        <section className="grid grid-cols-[auto_auto_auto_1fr_auto] grid-flow-dense">
+            <VideoInfo video_dir={video.dir} />
+            <button>(1) Importar Cortes</button>
+            <button>(2) Importar Glosas</button>
+        </section>
         <h2>Signos</h2>
         <section className="grid-cols-[auto_auto_auto_auto_1fr]">
             <ClipList clips={[]} />
@@ -43,29 +47,29 @@ function VideoInfo ({ video_dir }) {
             setLoaded(true);
         });
     }, [video_dir]);
-    return <section className="grid-cols-[auto_auto_auto_auto_1fr]">
+    return <>
         <span>Revisado:</span>
         <span>
             <input disabled={!loaded} type="checkbox" autoComplete="off" checked={reviewed}
                 onChange={e => setRev(!reviewed)} />
         </span>
 
-        <span>Notas:</span>
+        <span className="row-span-2">Notas:</span>
         <span className="row-span-2">
             <textarea disabled={!loaded} autoComplete="off" value={notes}
                 onChange={e => setNotes(e.target.value)} />
         </span>
 
-        <span className="row-span-2 self-end"><button>Importar Cortes</button></span>
-
-        <span>Intérprete:</span>
-        <span><select value={signer} onChange={e => setSigner(e.target.value)}
+        <span className="col-start-1">Intérprete:</span>
+        <span className="col-start-2">
+            <select value={signer} onChange={e => setSigner(e.target.value)}
                 disabled={!loaded} autoComplete="off">
             <option></option>
             <option value="Gloria">Gloria</option>
             <option value="Mamen">Mamen</option>
         </select></span>
-    </section>;
+
+    </>;
 }
 
 function ClipList ({ clips }) {
