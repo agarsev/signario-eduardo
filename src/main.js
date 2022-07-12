@@ -32,6 +32,7 @@ function MainWindow (dir) {
   const win = new BrowserWindow({
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
+      spellcheck: false,
     },
   });
   win.loadFile('dist/index.html')
