@@ -49,6 +49,12 @@ export function RevisarVideo ({ video }) {
                     updInfo({cuts: newCuts});
                 }}
             />
+            <CutOperations cuts={info!==null&&info.cuts?info.cuts:[]}
+                currentCut={currentCut}
+                update={(cuts, newCurrent) => {
+                    updInfo({cuts});
+                    setCC(newCurrent);
+                }} />
         </section>
     </>;
 }
@@ -109,8 +115,14 @@ function VideoInfo ({ meta, updateMeta }) {
 }
 
 function CutList ({ cuts, currentCut, setCC }) {
+    const curLi = useRef();
+    useEffect(() => {
+        if (curLi.current) curLi.current.scrollIntoView({
+            behavior: "smooth", block: "nearest" });
+    }, [currentCut]);
     return <menu className="row-span-4">
         {cuts.map((c, i) => <li key={i}
+            ref={currentCut==i?curLi:null}
             className={currentCut==i?"selected":""}
             onClick={() => setCC(i)}
             >{c.gloss}</li>)}
@@ -143,5 +155,62 @@ function CutInfo ({ cut, updCut }) {
         <span>Notas:</span>
         <span className="col-span-3"><textarea {...common} className="w-full" value={notes || ''}
             onChange={e => updCut({notes: e.target.value})} /></span>
+    </>;
+}
+
+function CutOperations({ cuts, currentCut, update }) {
+    const addCut = () => {
+        let start = 0;
+        if (cuts.length > 0) {
+            start = cuts[cuts.length-1].end;
+        }
+        const end = parseFloat(start)+2;
+        const gloss = cuts.map(c => parseInt(c.gloss))
+            .filter(v => !isNaN(v))
+            .reduce((acc,v) => acc>v?acc:v, 0)+1;
+        const nucuts = cuts.slice();
+        nucuts.push({start, end, gloss});
+        update(nucuts, nucuts.length-1);
+    };
+    const rmCut = () => {
+        const nucuts = cuts.slice();
+        nucuts.splice(currentCut, 1);
+        let nextCut = currentCut;
+        if (nucuts.length == 0) {
+            nextCut = null;
+        } else if (nextCut >= nucuts.length) {
+            nextCut = nucuts.length-1;
+        }
+        update(nucuts, nextCut);
+    };
+    const shiftGloss = () => {
+        const nucuts = cuts.slice();
+        for (let i = nucuts.length-1; i>currentCut; i--) {
+            nucuts[i].gloss = nucuts[i-1].gloss
+        }
+        nucuts[currentCut].gloss = '-';
+        update(nucuts, currentCut);
+    };
+    const merge = () => {
+        const old = cuts[currentCut];
+        const nucuts = cuts.slice();
+        nucuts.splice(currentCut, 1);
+        nucuts[currentCut] = {
+            ...old,
+            ...nucuts[currentCut],
+            start: old.start
+        };
+        update(nucuts, currentCut);
+    };
+    return <>
+        <button onClick={addCut}>Añadir corte</button>
+        <span className="col-span-4">
+            <button disabled={currentCut===null} className="px-6 mr-2"
+                onClick={rmCut}>Eliminar corte</button>
+            <button disabled={currentCut===null} className="px-6 mr-2"
+                onClick={shiftGloss}>Desplazar glosas</button>
+            <button disabled={currentCut===null} className="px-6"
+                onClick={merge}>Unir con siguiente</button>
+        </span>
     </>;
 }
