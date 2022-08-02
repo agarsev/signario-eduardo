@@ -75,14 +75,22 @@ export function RevisarVideo ({ video }) {
         updInfo({cuts:nucuts});
     };
 
+    const orderCuts = async () => {
+        const nucuts = info.cuts.slice();
+        nucuts.sort((a, b) => a.start - b.start);
+        updInfo({cuts:nucuts});
+    }
+
     return <>
-        <section className="grid grid-cols-[auto_auto_auto_auto_1fr_auto] grid-flow-dense">
+        <section className="grid grid-cols-[auto_auto_auto_auto_1fr_auto_auto] grid-flow-dense">
             <VideoInfo meta={info} updateMeta={updInfo}
             />
             <span className="row-span-2 text-gray-600 text-center">{savingState}</span>
+            <button onClick={orderCuts} disabled={!info || !info.cuts || info.cuts.length<2}>Ordenar Cortes</button>
             <button onClick={() => api.import_autocuts(video.dir)
                     .then(cuts => updInfo({cuts}))}
                 >(1) Importar Cortes</button>
+            <span></span>
             <button onClick={importGlosses}>(2) Importar Glosas</button>
         </section>
         <h2>Signos</h2>
@@ -212,6 +220,7 @@ function CutInfo ({ cut, updCut, current }) {
 
         <span>Signotación:</span>
         <span><input {...common} type="text" value={notation || ''}
+            disabled={true}
             onChange={e => updCut({notation: e.target.value})} /></span>
 
         <span>Notas:</span>
@@ -220,19 +229,27 @@ function CutInfo ({ cut, updCut, current }) {
     </>;
 }
 
+const DEFAULT_START_LAG = 1;
+const DEFAULT_DURATION = 2;
 function CutOperations({ cuts, currentCut, update }) {
     const addCut = () => {
         let start = 0;
-        if (cuts.length > 0) {
-            start = cuts[cuts.length-1].end;
+        let idx = -1;
+        if (currentCut !== null) {
+            idx = currentCut;
+        } else if (cuts.length > 0) {
+            idx = cuts.length-1;
         }
-        const end = parseFloat(start)+2;
+        if (idx >= 0) {
+            start = parseFloat(cuts[idx].end)+DEFAULT_START_LAG;
+        }
+        let end = start+DEFAULT_DURATION;
         const gloss = cuts.map(c => parseInt(c.gloss))
             .filter(v => !isNaN(v))
             .reduce((acc,v) => acc>v?acc:v, 0)+1;
         const nucuts = cuts.slice();
-        nucuts.push({start, end, gloss});
-        update(nucuts, nucuts.length-1);
+        nucuts.splice(idx+1, 0, {start, end, gloss});
+        update(nucuts, idx+1);
     };
     const rmCut = () => {
         const nucuts = cuts.slice();
