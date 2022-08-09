@@ -50,14 +50,15 @@ export function RevisarVideo ({ video }) {
             }
         };
         api.on_undo(undo);
-        const onkeydown = e => {
+        const onkeyup = e => {
             if (e.ctrlKey && e.key == 'z') {
                 undo();
                 e.preventDefault();
+                e.stopPropagation();
             }
         };
-        document.addEventListener('keydown', onkeydown);
-        return () => document.removeEventListener('keydown', onkeydown);
+        document.addEventListener('keyup', onkeyup);
+        return () => document.removeEventListener('keyup', onkeyup);
     }, []);
 
     const importGlosses = async () => {
@@ -116,18 +117,28 @@ export function RevisarVideo ({ video }) {
 
 function VideoPlay ({ video, start, end }) {
     const videoRef = useRef();
-    const player = videoRef.current;
     const replay = () => {
+        const player = videoRef.current;
         player.currentTime = start;
         player.play();
     };
     const checkEnd = () => {
+        const player = videoRef.current;
         if (end>=0 && player.currentTime >= end) {
             player.pause();
         }
     };
     useEffect(() => {
-        if (start >= 0 && player) replay();
+        if (start >= 0 && videoRef.current) replay();
+        const onkeyup = e => {
+            if (e.ctrlKey && e.key == 'Enter') {
+                replay();
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }
+        document.addEventListener('keyup', onkeyup);
+        return () => document.removeEventListener('keyup', onkeyup);
     }, [start, end]);
     return <span className="col-span-4">
         <video muted ref={videoRef} onClick={replay} onTimeUpdate={checkEnd} >
@@ -174,14 +185,19 @@ function CutList ({ cuts, currentCut, setCC }) {
     useEffect(() => {
         if (curLi.current) curLi.current.scrollIntoView({
             behavior: "smooth", block: "nearest" });
-        const onkeydown = e => {
-            if (e.key == 'Enter') {
+        const onkeyup = e => {
+            if (e.key == 'ArrowDown' || (!e.ctrlKey && e.key == 'Enter')) {
                 const next = currentCut===null?0:(currentCut+1);
-                if (next < cuts.length-1) setCC(next);
-            }
+                if (next < cuts.length) setCC(next);
+            } else if (e.key == 'ArrowUp') {
+                const next = currentCut===null?(cuts.length-1):(currentCut-1);
+                if (next >= 0) setCC(next);
+            } else { return; }
+            e.preventDefault();
+            e.stopPropagation();
         };
-        document.addEventListener('keydown', onkeydown);
-        return () => document.removeEventListener('keydown', onkeydown);
+        document.addEventListener('keyup', onkeyup);
+        return () => document.removeEventListener('keyup', onkeyup);
     }, [currentCut, cuts.length]);
     return <menu className="row-span-4">
         {cuts.map((c, i) => <li key={i}
