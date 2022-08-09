@@ -2,6 +2,7 @@ const path = require('path');
 const fsconst = require('fs').constants;
 const fs = require('fs/promises');
 const { dialog, BrowserWindow } = require('electron');
+const JSZip = require("jszip");
 
 exports.listVideos = async function(data_dir) {
     const videos = (await fs.readdir(data_dir)).map(f => {
@@ -83,4 +84,21 @@ exports.importGlosses = async function(video_dir) {
   if (res.canceled) return;
   const text = await fs.readFile(res.filePaths[0], 'utf8');
   return text.split(/\r?\n/).filter(l => l!=='');
+}
+
+exports.exportZip = async function(data_dir, filename) {
+  const zip = new JSZip();
+  for (dir of await fs.readdir(data_dir)) {
+    const info = path.join(data_dir, dir, 'info.json');
+    try {
+      await fs.access(info, fsconst.R_OK);
+    } catch (err) { continue; }
+    const f = zip.folder(dir);
+    f.file('info.json', await fs.readFile(info, 'utf8'));
+  }
+  const res = await zip.generateAsync({
+    type: 'nodebuffer',
+    compression: 'DEFLATE'
+  });
+  await fs.writeFile(filename, res);
 }

@@ -1,7 +1,7 @@
 const { app, BrowserWindow, Menu, MenuItem, dialog, ipcMain } = require('electron')
 const path = require('path');
 
-const { importRecordings, importAutocuts, importGlosses } = require('./api.js');
+const { importRecordings, importAutocuts, importGlosses, exportZip } = require('./api.js');
 
 const undoMenu = new MenuItem({
   label: 'Deshacer',
@@ -29,6 +29,11 @@ function MainWindow (dir) {
     }, {
       label: 'Importar grabaciones',
       click: importRecordingsDialog
+    }, {
+      type: 'separator'
+    }, {
+      label: 'Exportar zip',
+      click: exportZipDialog
     }, {
       type: 'separator'
     }, {
@@ -91,7 +96,7 @@ async function importRecordingsDialog (_, win) {
       message: "Importando... por favor espera o ve a la pradera.",
       buttons: [ "Terminar" ]
     });
-    const data_dir = await win.webContents.executeJavaScript("localStorage.getItem('data_directory')");
+    const data_dir = JSON.parse(await win.webContents.executeJavaScript("localStorage.getItem('data_directory')"));
     const cancel = { cancelled: false };
     const importPromise = importRecordings(res.filePaths[0], data_dir, cancel);
     const who = await Promise.race([msg, importPromise]);
@@ -112,6 +117,33 @@ async function importRecordingsDialog (_, win) {
       message: `${num} grabaciones importadas.`,
     });
     win.reload();
+  }
+}
+
+function formatDate() {
+  const fecha = new Date();
+  const mes = fecha.getMonth()+1;
+  const dia = fecha.getDate();
+  return ("0"+mes).slice(-2)+("0"+dia).slice(-2);
+}
+
+async function exportZipDialog (_, win) {
+  const res = await dialog.showSaveDialog(win, {
+    title: "Exportar a fichero zip",
+    defaultPath: `CortesVideosSignario_${formatDate()}.zip`,
+    filters: [
+      { name: 'Fichero zip', extensions: ["zip"] },
+      { name: 'Todos', extensions: ['*'] }
+    ],
+    properties: ['showOverwriteConfirmation'],
+  });
+  if (!res.canceled) {
+    const data_dir = JSON.parse(await win.webContents.executeJavaScript("localStorage.getItem('data_directory')"));
+    await exportZip(data_dir, res.filePath);
+    await dialog.showMessageBox(win, {
+      title: "Exportando zip",
+      message: "Zip exportado con éxito",
+    });
   }
 }
 
