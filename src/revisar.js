@@ -186,15 +186,17 @@ function CutList ({ cuts, currentCut, setCC }) {
         if (curLi.current) curLi.current.scrollIntoView({
             behavior: "smooth", block: "nearest" });
         const onkeyup = e => {
-            if (e.key == 'ArrowDown' || (!e.ctrlKey && e.key == 'Enter')) {
-                const next = currentCut===null?0:(currentCut+1);
-                if (next < cuts.length) setCC(next);
-            } else if (e.key == 'ArrowUp') {
-                const next = currentCut===null?(cuts.length-1):(currentCut-1);
-                if (next >= 0) setCC(next);
-            } else { return; }
-            e.preventDefault();
-            e.stopPropagation();
+            if (e.key == 'Enter') {
+                let next;
+                if (e.shiftKey) {
+                    next = currentCut===null?(cuts.length-1):(currentCut-1);
+                } else if (!e.ctrlKey)  {
+                    next = currentCut===null?0:(currentCut+1);
+                } else return;
+                if ((next >= 0) && (next < cuts.length)) setCC(next);
+                e.preventDefault();
+                e.stopPropagation();
+            }
         };
         document.addEventListener('keyup', onkeyup);
         return () => document.removeEventListener('keyup', onkeyup);
