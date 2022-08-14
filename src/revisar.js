@@ -222,7 +222,7 @@ function CutInfo ({ cut, updCut, current }) {
             glosRef.current.select();
         }
     }, [current]);
-    const { start, end, gloss, notation, notes } = cut?cut:{};
+    const { start, end, gloss, number, notes } = cut?cut:{};
     return <>
         <span>Desde:</span>
         <span><input {...common} type="number" min="0" step="0.1" value={start || 0}
@@ -236,10 +236,9 @@ function CutInfo ({ cut, updCut, current }) {
         <span><input {...common} type="text" value={gloss || ''} ref={glosRef}
             onChange={e => updCut({gloss: e.target.value})} /></span>
 
-        <span>Signotación:</span>
-        <span><input {...common} type="text" value={notation || ''}
-            disabled={true}
-            onChange={e => updCut({notation: e.target.value})} /></span>
+        <span>Número:</span>
+        <span><input {...common} type="text" value={number || ''}
+            onChange={e => updCut({number: e.target.value})} /></span>
 
         <span>Notas:</span>
         <span className="col-span-3"><textarea {...common} className="w-full" value={notes || ''}
